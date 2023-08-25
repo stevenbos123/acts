@@ -85,6 +85,7 @@ class SeedingPerformanceWriter final : public WriterT<SimSeedContainer> {
   size_t m_nTotalParticles = 0;
   size_t m_nTotalMatchedParticles = 0;
   size_t m_nTotalDuplicatedParticles = 0;
+  size_t m_event = 0;
 
   ReadDataHandle<SimParticleContainer> m_inputParticles{this, "InputParticles"};
   ReadDataHandle<HitParticlesMap> m_inputMeasurementParticlesMap{

@@ -98,10 +98,10 @@ ActsExamples::SpacePointMaker::SpacePointMaker(Config cfg,
   spBuilderConfig.trackingGeometry = m_cfg.trackingGeometry;
 
   auto spConstructor =
-      [](const Acts::Vector3& pos, const Acts::Vector2& cov,
+      [](const Acts::Vector3& pos, const Acts::Vector2& cov, float time, float varTime,
          boost::container::static_vector<Acts::SourceLink, 2> slinks)
       -> SimSpacePoint {
-    return SimSpacePoint(pos, cov[0], cov[1], std::move(slinks));
+    return SimSpacePoint(pos, cov[0], cov[1], time, varTime, std::move(slinks));
   };
 
   m_spacePointBuilder = Acts::SpacePointBuilder<SimSpacePoint>(

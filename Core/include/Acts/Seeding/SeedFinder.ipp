@@ -10,6 +10,7 @@
 #include <cmath>
 #include <numeric>
 #include <type_traits>
+// #include <iostream>   // dont forget to remove
 
 namespace Acts {
 
@@ -223,6 +224,11 @@ SeedFinder<external_spacepoint_t, platform_t>::getCompatibleDoublets(
   const float& zM = mediumSP.z();
   const float& varianceRM = mediumSP.varianceR();
   const float& varianceZM = mediumSP.varianceZ();
+  // const float& timeM = mediumSP.sp().time();
+  // float TOFM = std::numeric_limits<float>::quiet_NaN();
+  // if (timeM ==timeM){
+  //   TOFM = timeM - std::sqrt(rM*rM + zM*zM);
+  // }
 
   float vIPAbs = 0;
   if (m_config.interactionPointCut) {
@@ -263,10 +269,22 @@ SeedFinder<external_spacepoint_t, platform_t>::getCompatibleDoublets(
     // that mean that we have changed the middle space point
     // and the lower bound has moved accordingly
     otherSPCol.itr = min_itr;
-
     for (; min_itr != otherSPs.end(); ++min_itr) {
       const auto& otherSP = *min_itr;
+      // float timeI = otherSP->sp().time();
 
+      // if (TOFM == TOFM && timeI == timeI){
+      //   const float twosigmat = 45.0;
+
+      //   float TOFI = timeI - std::sqrt(otherSP->radius() * otherSP->radius() + otherSP->z()*otherSP->z());
+      //   // std::cout<<"diff: "<<abs(TOFM - TOFI)<<std::endl;
+
+      //   if (abs(TOFM - TOFI) >= twosigmat){// not compatible in time doublet
+      //     // std::cout<<"not compatible: "<<abs(TOFM - TOFI)<<std::endl;
+      //     continue;
+      //   }
+        
+      // }
       if constexpr (candidateType == Acts::SpacePointCandidateType::eBottom) {
         deltaR = (rM - otherSP->radius());
 

@@ -20,6 +20,8 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#include <iostream>
+#include <fstream>
 
 #include <TFile.h>
 
@@ -77,11 +79,11 @@ ActsExamples::ProcessCode ActsExamples::SeedingPerformanceWriter::finalize() {
       float(m_nTotalMatchedSeeds - m_nTotalMatchedParticles) /
       m_nTotalMatchedParticles;
   float totalSeedPurity = float(m_nTotalMatchedSeeds) / m_nTotalSeeds;
-  ACTS_DEBUG("nTotalSeeds               = " << m_nTotalSeeds);
-  ACTS_DEBUG("nTotalMatchedSeeds        = " << m_nTotalMatchedSeeds);
-  ACTS_DEBUG("nTotalParticles           = " << m_nTotalParticles);
-  ACTS_DEBUG("nTotalMatchedParticles    = " << m_nTotalMatchedParticles);
-  ACTS_DEBUG("nTotalDuplicatedParticles = " << m_nTotalDuplicatedParticles);
+  ACTS_INFO("nTotalSeeds               = " << m_nTotalSeeds);
+  ACTS_INFO("nTotalMatchedSeeds        = " << m_nTotalMatchedSeeds);
+  ACTS_INFO("nTotalParticles           = " << m_nTotalParticles);
+  ACTS_INFO("nTotalMatchedParticles    = " << m_nTotalMatchedParticles);
+  ACTS_INFO("nTotalDuplicatedParticles = " << m_nTotalDuplicatedParticles);
 
   ACTS_INFO("Efficiency (nMatchedParticles / nAllParticles) = " << eff);
   ACTS_INFO("Fake rate (nUnMatchedSeeds / nAllSeeds) = " << fakeRate);
@@ -106,6 +108,12 @@ ActsExamples::ProcessCode ActsExamples::SeedingPerformanceWriter::finalize() {
 
 ActsExamples::ProcessCode ActsExamples::SeedingPerformanceWriter::writeT(
     const AlgorithmContext& ctx, const SimSeedContainer& seeds) {
+
+
+  std::ofstream outFile("/eos/user/s/sbos/doubletcheck/events/seedparams_eventnr_"+std::to_string(m_event++)+".txt");
+  if (!outFile) {
+      std::cerr << "Failed to open the file for writing." << std::endl;
+  }
   // Read truth information collections
   const auto& particles = m_inputParticles(ctx);
   const auto& hitParticlesMap = m_inputMeasurementParticlesMap(ctx);
@@ -144,9 +152,18 @@ ActsExamples::ProcessCode ActsExamples::SeedingPerformanceWriter::writeT(
         nDuplicatedParticles++;
       }
     }
+    using Acts::VectorHelpers::eta;
+    using Acts::VectorHelpers::perp;
+    using Acts::VectorHelpers::phi;
     m_effPlotTool.fill(m_effPlotCache, particle, isMatched);
     m_duplicationPlotTool.fill(m_duplicationPlotCache, particle,
                                nMatchedSeedsForParticle - 1);
+    auto t_phi = phi(particle.direction());
+    auto t_eta = eta(particle.direction());
+    auto t_pT = particle.transverseMomentum();
+    outFile << "Seed = " << t_phi << " " << t_eta << " " << t_pT << " " << isMatched << std::endl;
+    
+    
   }
   ACTS_DEBUG("Number of seeds: " << nSeeds);
   m_nTotalSeeds += nSeeds;
@@ -154,6 +171,6 @@ ActsExamples::ProcessCode ActsExamples::SeedingPerformanceWriter::writeT(
   m_nTotalParticles += particles.size();
   m_nTotalMatchedParticles += nMatchedParticles;
   m_nTotalDuplicatedParticles += nDuplicatedParticles;
-
+  outFile.close(); // Don't forget to close the file
   return ProcessCode::SUCCESS;
 }

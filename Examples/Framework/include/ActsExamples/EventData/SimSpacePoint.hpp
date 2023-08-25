@@ -40,6 +40,8 @@ class SimSpacePoint {
   /// @param stripCenterDistance distance between the center of the two strips
   /// @param topStripCenterPosition position of the center of the top strip
   /// @param validDoubleMeasurementDetails boolean to check if double measurements are valid
+  /// @param time Time of the hit propagated to spacepoint
+  /// @param varTime Measurement variance of time
   template <typename position_t>
   SimSpacePoint(
       const Eigen::MatrixBase<position_t>& pos, float varRho, float varZ,
@@ -62,7 +64,9 @@ class SimSpacePoint {
         m_bottomStripDirection(bottomStripDirection),
         m_stripCenterDistance(stripCenterDistance),
         m_topStripCenterPosition(topStripCenterPosition),
-        m_validDoubleMeasurementDetails(true) {
+        m_time(std::numeric_limits<float>::quiet_NaN()),
+        m_varianceTime(std::numeric_limits<float>::quiet_NaN()), 
+        m_validDoubleMeasurementDetails(true){
     EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(position_t, 3);
   }
 
@@ -73,6 +77,8 @@ class SimSpacePoint {
   /// @param varRho Measurement variance of the global transverse distance
   /// @param varZ Measurement variance of the global longitudinal position
   /// @param sourceLinks sourceLinks of the measurements
+  /// @param time Time of the hit propagated to spacepoint
+  /// @param varTime Measurement variance of time
   template <typename position_t>
   SimSpacePoint(
       const Eigen::MatrixBase<position_t>& pos, Scalar varRho, Scalar varZ,
@@ -83,6 +89,25 @@ class SimSpacePoint {
         m_rho(std::hypot(m_x, m_y)),
         m_varianceRho(varRho),
         m_varianceZ(varZ),
+        m_time(std::numeric_limits<float>::quiet_NaN()),
+        m_varianceTime(std::numeric_limits<float>::quiet_NaN()),
+        m_sourceLinks(std::move(sourceLinks)) {
+    EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(position_t, 3);
+  }
+
+  template <typename position_t>
+  SimSpacePoint(
+      const Eigen::MatrixBase<position_t>& pos, Scalar varRho, Scalar varZ,
+      Scalar time, Scalar varTime,
+      boost::container::static_vector<Acts::SourceLink, 2> sourceLinks)
+      : m_x(pos[Acts::ePos0]),
+        m_y(pos[Acts::ePos1]),
+        m_z(pos[Acts::ePos2]),
+        m_rho(std::hypot(m_x, m_y)),
+        m_varianceRho(varRho),
+        m_varianceZ(varZ),
+        m_time(time),
+        m_varianceTime(varTime),
         m_sourceLinks(std::move(sourceLinks)) {
     EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(position_t, 3);
   }
@@ -93,6 +118,8 @@ class SimSpacePoint {
   constexpr Scalar r() const { return m_rho; }
   constexpr Scalar varianceR() const { return m_varianceRho; }
   constexpr Scalar varianceZ() const { return m_varianceZ; }
+  constexpr Scalar time() const { return m_time; }
+  constexpr Scalar varTime() const {return m_varianceTime; }
 
   const boost::container::static_vector<Acts::SourceLink, 2>& sourceLinks()
       const {
@@ -122,6 +149,8 @@ class SimSpacePoint {
   // Variance in rho/z of the global coordinates
   Scalar m_varianceRho;
   Scalar m_varianceZ;
+  Scalar m_time;
+  Scalar m_varianceTime;
   // SourceLinks of the corresponding measurements. A Pixel (strip) SP has one
   // (two) sourceLink(s).
   boost::container::static_vector<Acts::SourceLink, 2> m_sourceLinks;
@@ -154,7 +183,8 @@ inline bool operator==(const SimSpacePoint& lhs, const SimSpacePoint& rhs) {
                      }) and
           (lhs.x() == rhs.x()) and (lhs.y() == rhs.y()) and
           (lhs.z() == rhs.z()) and (lhs.varianceR() == rhs.varianceR()) and
-          (lhs.varianceZ() == rhs.varianceZ()));
+          (lhs.varianceZ() == rhs.varianceZ()) and
+          (lhs.time() == rhs.time()) and (lhs.varTime() == rhs.varTime()));
 }
 
 /// Container of space points.
