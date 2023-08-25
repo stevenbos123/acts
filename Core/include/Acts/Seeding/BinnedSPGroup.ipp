@@ -144,6 +144,8 @@ Acts::BinnedSPGroup<external_spacepoint_t>::BinnedSPGroup(
   float phiMax = config.phiMax;
   float zMin = config.zMin;
   float zMax = config.zMax;
+  // float tMin = -100.00;
+  // float tMax = 100.00;
 
   // sort by radius
   // add magnitude of beamPos to rMax to avoid excluding measurements
@@ -168,9 +170,18 @@ Acts::BinnedSPGroup<external_spacepoint_t>::BinnedSPGroup(
     float spX = spPosition[0];
     float spY = spPosition[1];
     float spZ = spPosition[2];
+    // float spT = sp.time();    // in mm 
+
+    // float TOFtime = spT - std::sqrt(spX*spX + spY*spY + spZ*spZ);
+    // std::cout<<"spT: "<<spT<<" "<<TOFtime<<std::endl;
 
     // store x,y,z values in extent
     rRangeSPExtent.extend({spX, spY, spZ});
+
+    // remove SPs with time outside compatibility window
+    // if (TOFtime > tMax || TOFtime < tMin) {
+    //   continue;
+    // }
 
     // remove SPs outside z and phi region
     if (spZ > zMax || spZ < zMin) {
